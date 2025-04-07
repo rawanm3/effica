@@ -1,21 +1,30 @@
-import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, AfterViewInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-services',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './services.component.html',
-  styleUrl: './services.component.scss'
+  styleUrls: ['./services.component.scss']
 })
-export class ServicesComponent {
+export class ServicesComponent implements AfterViewInit {
 
-  backgroundOpacity = 0; // Initial opacity
+  @ViewChildren('contentBlock', { read: ElementRef }) contentBlocks!: QueryList<ElementRef>;
 
-  @HostListener('window:scroll', [])
-  onScroll(): void {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const maxScroll = 300; // Adjust how fast opacity increases
-    this.backgroundOpacity = Math.min(scrollTop / maxScroll, 1); // Normalize opacity (0 to 1)
+  ngAfterViewInit(): void {
+    // Create the IntersectionObserver to track the visibility of the content blocks
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('show');
+        }
+      });
+    }, {
+      threshold: 0.3  // Trigger the effect when 30% of the element is visible
+    });
+
+    // Observe each content block
+    this.contentBlocks.forEach(block => {
+      observer.observe(block.nativeElement);
+    });
   }
 }
